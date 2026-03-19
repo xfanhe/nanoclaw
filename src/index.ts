@@ -1,6 +1,17 @@
 import fs from 'fs';
 import path from 'path';
 
+// Set up global proxy for undici/fetch connections (used by @discordjs/rest)
+const proxyUrl =
+  process.env.HTTPS_PROXY ||
+  process.env.https_proxy ||
+  process.env.HTTP_PROXY ||
+  process.env.http_proxy;
+if (proxyUrl) {
+  const undici = await import('undici');
+  undici.setGlobalDispatcher(new undici.ProxyAgent(proxyUrl));
+}
+
 import {
   ASSISTANT_NAME,
   CREDENTIAL_PROXY_PORT,
