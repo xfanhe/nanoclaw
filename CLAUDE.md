@@ -59,6 +59,12 @@ systemctl --user restart nanoclaw
 
 **WhatsApp not connecting after upgrade:** WhatsApp is now a separate channel fork, not bundled in core. Run `/add-whatsapp` (or `git remote add whatsapp https://github.com/qwibitai/nanoclaw-whatsapp.git && git fetch whatsapp main && (git merge whatsapp/main || { git checkout --theirs package-lock.json && git add package-lock.json && git merge --continue; }) && npm run build`) to install it. Existing auth credentials and groups are preserved.
 
+**China network / proxy setup:** Docker Hub, Debian repos, npm registry, and Discord are not directly accessible. The following mirrors and proxy are configured:
+- `container/Dockerfile`: base image via `docker.1ms.run`, apt via Tsinghua mirror, npm via `npmmirror.com`
+- `src/index.ts`: undici `ProxyAgent` reads `HTTPS_PROXY` env for Discord REST API
+- `node_modules/ws/lib/websocket.js`: patched to inject `hpagent` proxy for Discord WebSocket gateway (re-apply after `npm install`)
+- `.env` and launchd plist both carry `HTTP_PROXY`/`HTTPS_PROXY=http://127.0.0.1:7897`
+
 ## Container Build Cache
 
 The container buildkit caches the build context aggressively. `--no-cache` alone does NOT invalidate COPY steps — the builder's volume retains stale files. To force a truly clean rebuild, prune the builder then re-run `./container/build.sh`.
